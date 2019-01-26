@@ -2,11 +2,8 @@
 
 # TODO:
 # Don't depend on line ends being sentence ends
-# Protect against sql injection and surpises from quotes
 # Clenup: sentence preprocessing: skip the risky ones
-# Weaken the weight for the old bigrams
 # Add a meta-word to mark the beginning of a sentence
-# Process unigrams too
 # Process trigrams too
 
 import argparse
@@ -15,6 +12,7 @@ import nltk
 
 
 param_dryrun = True
+param_verbose = False
 
 param_corpus = 'text_corpus.txt'
 param_model = 'arthur_c.sqlite'
@@ -55,7 +53,8 @@ def process_ngram1(pos, sentence):
     sql_cmd_bindings=(c, word1)
   # update the unigram
   cursor.execute(sql_cmd, sql_cmd_bindings)
-  print("Updated unigram: {w1}".format(w1=word1))
+  if param_verbose:
+    print("Updated unigram: {w1}".format(w1=word1))
   db.commit()
    
 
@@ -86,7 +85,8 @@ def process_ngram2(pos, sentence):
     sql_cmd_bindings=(c, word1, word2)
   # update the bigram
   cursor.execute(sql_cmd, sql_cmd_bindings)
-  print("Updated bigram: {w1}, {w2}".format(w1=word1,w2=word2))
+  if param_verbose:
+    print("Updated bigram: {w1}, {w2}".format(w1=word1,w2=word2))
   db.commit()
    
 
@@ -97,7 +97,7 @@ def process_corpus():
         tokenized_sentence = nltk.word_tokenize(sentence)
         for pos, word in enumerate(tokenized_sentence):
           process_ngram1(pos, tokenized_sentence)
-          # process_ngram2(pos, tokenized_sentence)
+          process_ngram2(pos, tokenized_sentence)
   print("Done processing corpus")
 
 
@@ -134,7 +134,7 @@ def main():
   process_corpus()
 
   print_unigram_stats()
-  # print_bigram_stats()
+  print_bigram_stats()
 
   print("Done")
 
