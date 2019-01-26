@@ -1,8 +1,6 @@
 # Take a text corpus and a model in sqlite and update the model with the text corpus
 
 # TODO:
-# Don't depend on line ends being sentence ends
-# Clenup: sentence preprocessing: skip the risky ones
 # Add a meta-word to mark the beginning of a sentence
 # Process trigrams too
 
