@@ -3,3 +3,5 @@ django
 gunicorn
 whitenoise
 dj-database-url
+pandas
+matplotlib

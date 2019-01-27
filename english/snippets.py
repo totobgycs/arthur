@@ -29,3 +29,9 @@ wget http://www.gutenberg.org/cache/epub/1597/pg1597.txt
 python refine_cooc.py --model=arthur_c.sqlite --corpus=pg1597.txt
 
 
+# start a jupyter notebook
+jupyter notebook --ip 0.0.0.0 --port 8000 --no-browser
+
+# connect:
+http://ec2-18-202-174-17.eu-west-1.compute.amazonaws.com:8000
+
