@@ -9,8 +9,12 @@ import sqlite3
 import nltk
 
 
+# TODO: implement dryrun
 param_dryrun = True
+# Extra logging of progress
 param_verbose = False
+# Recency bias
+param_balancing = True
 
 param_corpus = 'text_corpus.txt'
 param_model = 'arthur_c.sqlite'
@@ -39,7 +43,7 @@ def process_ngram1(pos, sentence):
   sql_cmd_bindings = (word1,)
   cursor.execute(sql_cmd, sql_cmd_bindings)
   rec = cursor.fetchall()
-  # compute new weights
+  # compute new weights for the current word
   if not rec:
     c = 1 * param_alpha
     sql_cmd = 'INSERT INTO prominence_n1(word1, cooc) VALUES(?, ?)'
@@ -51,6 +55,12 @@ def process_ngram1(pos, sentence):
     sql_cmd_bindings=(c, word1)
   # update the unigram
   cursor.execute(sql_cmd, sql_cmd_bindings)
+  # compute new weights for other unigrams
+  if param_balancing:
+    sql_cmd = 'UPDATE prominence_n1 set cooc = cooc * (1 - ?) WHERE word1 != ?'
+    sql_cmd_bindings=(param_alpha, word1)
+    cursor.execute(sql_cmd, sql_cmd_bindings)
+  # finish
   if param_verbose:
     print("Updated unigram: {w1}".format(w1=word1))
   db.commit()
@@ -83,6 +93,12 @@ def process_ngram2(pos, sentence):
     sql_cmd_bindings=(c, word1, word2)
   # update the bigram
   cursor.execute(sql_cmd, sql_cmd_bindings)
+  # compute new weights for other bigrams
+  if param_balancing:
+    sql_cmd = 'UPDATE prominence_n2 set cooc = cooc * (1 - ?) WHERE word1 != ? and word2 = ?'
+    sql_cmd_bindings=(param_alpha, word1, word2)
+    cursor.execute(sql_cmd, sql_cmd_bindings)
+  # finish
   if param_verbose:
     print("Updated bigram: {w1}, {w2}".format(w1=word1,w2=word2))
   db.commit()
