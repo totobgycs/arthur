@@ -38,11 +38,18 @@ word1 text, word2 text, word3 text,
 cooc integer,
 primary key(word1, word2, word3))
 """
+  sql_cmd_create4 = """
+create table prominence_n4(
+word1 text, word2 text, word3 text, word4 text,
+cooc integer,
+primary key(word1, word2, word3, word4))
+"""
   db = sqlite3.connect(param_model)
   cursor = db.cursor()
   cursor.execute(sql_cmd_create1)
   cursor.execute(sql_cmd_create2)
   cursor.execute(sql_cmd_create3)
+  cursor.execute(sql_cmd_create4)
   db.commit()
 
   print("Setup done.")

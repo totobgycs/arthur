@@ -26,8 +26,7 @@ wget http://www.gutenberg.org/cache/epub/1597/pg1597.txt
 
 
 # build the model
-python refine_cooc.py --model=arthur_c.sqlite --corpus=pg1597.txt
-
+python build_model_incremental.py --model=arthur_c.sqlite --corpus="corpus/andersen.txt"
 
 # start a jupyter notebook
 jupyter notebook --ip 0.0.0.0 --port 8000 --no-browser

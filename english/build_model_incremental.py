@@ -14,7 +14,7 @@ param_dryrun = True
 # Extra logging of progress
 param_verbose = False
 # Recency bias
-param_balancing = True
+param_balancing = False
 
 param_corpus = 'text_corpus.txt'
 param_model = 'arthur_c.sqlite'
@@ -68,8 +68,7 @@ def process_ngram1(pos, sentence):
 
 def process_ngram2(pos, sentence):
   n = 2
-  # if this is the last word, there is nothing to do
-  if pos == len(sentence) - 1:
+  if pos > len(sentence) - n:
     return
   word1 = sentence[pos]
   word2 = sentence[pos + 1]
@@ -104,6 +103,86 @@ def process_ngram2(pos, sentence):
   db.commit()
    
 
+def process_ngram3(pos, sentence):
+  n = 3
+  if pos > len(sentence) - n:
+    return
+  word1 = sentence[pos]
+  word2 = sentence[pos + 1]
+  word3 = sentence[pos + 2]
+  word1 = word1.upper()
+  word2 = word2.upper()
+  word3 = word3.upper()
+
+  # read the bigram
+  sql_cmd = 'select word1, word2, word3, cooc from prominence_n3 where word1 = ? and word2 = ? and word3 = ?'
+  sql_cmd_bindings = (word1, word2, word3)
+  cursor.execute(sql_cmd, sql_cmd_bindings)
+  rec = cursor.fetchall()
+  # compute new weights
+  if not rec:
+    c = 1 * param_alpha
+    sql_cmd = 'INSERT INTO prominence_n3(word1, word2, word3, cooc) VALUES(?, ?, ?, ?)'
+    sql_cmd_bindings=(word1, word2, word3, c)
+  else:
+    oldc = rec[0][n]
+    c = oldc * (1 - param_alpha) + 1 * param_alpha
+    sql_cmd = 'UPDATE prominence_n3 set cooc = ? WHERE word1 = ? and word2 = ? and word3 = ?'
+    sql_cmd_bindings=(c, word1, word2, word3)
+  # update the bigram
+  cursor.execute(sql_cmd, sql_cmd_bindings)
+  # compute new weights for other bigrams
+  if param_balancing:
+    sql_cmd = 'UPDATE prominence_n3 set cooc = cooc * (1 - ?) WHERE word1 != ? and word2 = ? and word3 != ?'
+    sql_cmd_bindings=(param_alpha, word1, word2, word3)
+    cursor.execute(sql_cmd, sql_cmd_bindings)
+  # finish
+  if param_verbose:
+    print("Updated nram: {w1}, {w2}, {w3}".format(w1=word1,w2=word2,w3=word3))
+  db.commit()
+   
+
+def process_ngram4(pos, sentence):
+  n = 4
+  if pos > len(sentence) - n:
+    return
+  word1 = sentence[pos]
+  word2 = sentence[pos + 1]
+  word3 = sentence[pos + 2]
+  word4 = sentence[pos + 3]
+  word1 = word1.upper()
+  word2 = word2.upper()
+  word3 = word3.upper()
+  word4 = word4.upper()
+
+  # read the bigram
+  sql_cmd = 'select word1, word2, word3, word4, cooc from prominence_n4 where word1 = ? and word2 = ? and word3 = ? and word4 = ?'
+  sql_cmd_bindings = (word1, word2, word3, word4)
+  cursor.execute(sql_cmd, sql_cmd_bindings)
+  rec = cursor.fetchall()
+  # compute new weights
+  if not rec:
+    c = 1 * param_alpha
+    sql_cmd = 'INSERT INTO prominence_n4(word1, word2, word3, word4, cooc) VALUES(?, ?, ?, ?, ?)'
+    sql_cmd_bindings=(word1, word2, word3, word4, c)
+  else:
+    oldc = rec[0][n]
+    c = oldc * (1 - param_alpha) + 1 * param_alpha
+    sql_cmd = 'UPDATE prominence_n4 set cooc = ? WHERE word1 = ? and word2 = ? and word3 = ? and word4 = ?'
+    sql_cmd_bindings=(c, word1, word2, word3, word4)
+  # update the bigram
+  cursor.execute(sql_cmd, sql_cmd_bindings)
+  # compute new weights for other bigrams
+  if param_balancing:
+    sql_cmd = 'UPDATE prominence_n4 set cooc = cooc * (1 - ?) WHERE word1 != ? and word2 = ? and word3 != ? and word4 != ?'
+    sql_cmd_bindings=(param_alpha, word1, word2, word3, word4)
+    cursor.execute(sql_cmd, sql_cmd_bindings)
+  # finish
+  if param_verbose:
+    print("Updated nram: {w1}, {w2}, {w3}, {w4}".format(w1=word1,w2=word2,w3=word3,w4=word4))
+  db.commit()
+   
+
 def process_corpus():
   with open(param_corpus) as infile:
     for line in infile:
@@ -112,6 +191,8 @@ def process_corpus():
         for pos, word in enumerate(tokenized_sentence):
           process_ngram1(pos, tokenized_sentence)
           process_ngram2(pos, tokenized_sentence)
+          process_ngram3(pos, tokenized_sentence)
+          process_ngram4(pos, tokenized_sentence)
   print("Done processing corpus")
 
 
