@@ -14,7 +14,7 @@ param_dryrun = True
 # Extra logging of progress
 param_verbose = False
 # Recency bias
-param_balancing = False
+param_balancing = True
 
 param_corpus = 'text_corpus.txt'
 param_model = 'arthur_c.sqlite'
